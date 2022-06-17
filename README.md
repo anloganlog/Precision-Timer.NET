@@ -47,6 +47,11 @@ Dispose the Timer
 MyTimer.Dispose();
 ```
 
+# Manual Setup
+
+You can manually configure the `Timer` and then `Start` it yourself instead of using `SetInterval`
+
+
 ## SetAction
 
 Sets the `Action` that will be triggered by the TimerCallback when the `Period` has elapsed
@@ -54,11 +59,14 @@ Sets the `Action` that will be triggered by the TimerCallback when the `Period` 
 MyTimer.SetAction(Action);
 ```
 
-## SetPeriod
+## SetInterval
 
 Sets the Interval between `Actions` in `Milliseconds`.
 ```cs
-MyTimer.SetPeriod(int);
+MyTimer.SetInterval(int);
+```
+```cs
+MyTimer.GetInterval();
 ```
 
 ## SetResolution
@@ -66,6 +74,9 @@ MyTimer.SetPeriod(int);
 Set the `Resolution` of the Timer
 ```cs
 MyTimer.SetResolution(int);
+```
+```cs
+MyTimer.GetResolution();
 ```
 
 The resolution is in milliseconds. 
@@ -78,11 +89,29 @@ To reduce system overhead, however, you should use the maximum value appropriate
 
 The normal Resolution of a .Net Timer is around 12-15ms
 
-## SetAutoReset
 
-Set if the `Action` should reset (repeat)
+
+## SetEventArgs
+
+Set `EventArgs` of the Timer
+
 ```cs
-MyTimer.SetAutoReset(bool);
+MyTimer.SetEventArgs(EventArgs);
+```
+```cs
+MyTimer.GetEventArgs();
+```
+
+
+## SetPeriodic
+
+Set the Periodic/OneShot Mode of the <see cref="PrecisionTimer"/>
+
+```cs
+MyTimer.SetPeriodic(bool);
+```
+```cs
+MyTimer.GetPeriodic();
 ```
 
 `True` if the `PrecisionTimer` should raise the `Ticks` Event each time the interval elapses. (Periodic)

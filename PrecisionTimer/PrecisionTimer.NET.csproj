@@ -15,9 +15,9 @@
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>multimedia-timer, timer, mm, high, resolution, precision, events</PackageTags>
-    <AssemblyVersion>2.2.1</AssemblyVersion>
-    <FileVersion>2.2.1</FileVersion>
-    <VersionPrefix>2.2.1</VersionPrefix>
+    <AssemblyVersion>2.2.2</AssemblyVersion>
+    <FileVersion>2.2.2</FileVersion>
+    <VersionPrefix>2.2.2</VersionPrefix>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Title>PrecisonTimer.NET</Title>

@@ -1,14 +1,26 @@
-﻿//******************************************************************************************************
-//  Copyright © 2022, S Christison. No Rights Reserved.
-//
-//  Licensed to [You] under one or more License Agreements.
-//
-//      http://www.opensource.org/licenses/MIT
-//
-//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
-//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//
-//******************************************************************************************************
+﻿/*
+*MIT License
+*
+*Copyright (c) 2022 S Christison
+*
+*Permission is hereby granted, free of charge, to any person obtaining a copy
+*of this software and associated documentation files (the "Software"), to deal
+*in the Software without restriction, including without limitation the rights
+*to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*copies of the Software, and to permit persons to whom the Software is
+*furnished to do so, subject to the following conditions:
+*
+*The above copyright notice and this permission notice shall be included in all
+*copies or substantial portions of the Software.
+*
+*THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*SOFTWARE.
+*/
 
 using System;
 using System.Runtime.InteropServices;
@@ -54,9 +66,13 @@ namespace PrecisionTiming
             Dispose(false);
         }
 
-        internal bool IsRunning => m_running;
-        internal EventArgs EventArgs => m_eventArgs;
-        internal int Period
+        public bool IsRunning => m_running;
+        public EventArgs EventArgs => m_eventArgs;
+
+        /// <summary>
+        /// Get the Current Interval (Period)
+        /// </summary>
+        internal int GetPeriod
         {
             get
             {
@@ -65,6 +81,13 @@ namespace PrecisionTiming
 
                 return m_period;
             }
+        }
+
+        /// <summary>
+        /// Set the Current Interval (Period)
+        /// </summary>
+        internal int SetPeriod
+        {
             set
             {
                 if (m_disposed)
@@ -76,7 +99,11 @@ namespace PrecisionTiming
                 m_period = value;
             }
         }
-        internal int Resolution
+
+        /// <summary>
+        /// Get the Current Resolution
+        /// </summary>
+        internal int GetResolution
         {
             get
             {
@@ -85,6 +112,13 @@ namespace PrecisionTiming
 
                 return m_resolution;
             }
+        }
+
+        /// <summary>
+        /// Set the Current Resolution
+        /// </summary>
+        internal int SetResolution
+        {
             set
             {
                 if (m_disposed)
@@ -96,7 +130,42 @@ namespace PrecisionTiming
                 m_resolution = value;
             }
         }
-        internal bool AutoReset
+
+        /// <summary>
+        /// Get the Current EventArgs
+        /// </summary>
+        internal EventArgs GetArgs
+        {
+            get
+            {
+                if (m_disposed)
+                    throw new ObjectDisposedException("PrecisionTimer");
+
+                return m_eventArgs;
+            }
+        }
+
+        /// <summary>
+        /// Set the Current EventArgs
+        /// </summary>
+        internal EventArgs SetArgs
+        {
+            set
+            {
+                if (m_disposed)
+                    throw new ObjectDisposedException("PrecisionTimer");
+
+                if (value != null)
+                {
+                    m_eventArgs = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get the Current Timer Reset Mode (Periodic/Oneshot)
+        /// </summary>
+        internal bool GetAutoReset
         {
             get
             {
@@ -105,6 +174,13 @@ namespace PrecisionTiming
 
                 return (m_mode == TimerMode.Periodic);
             }
+        }
+
+        /// <summary>
+        /// Set the Current Timer Reset Mode (Periodic/Oneshot)
+        /// </summary>
+        internal bool SetAutoReset
+        {
             set
             {
                 if (m_disposed)
@@ -114,6 +190,62 @@ namespace PrecisionTiming
             }
         }
 
+        internal bool Start(EventArgs userArgs = null)
+        {
+            if (m_disposed)
+                throw new ObjectDisposedException("Attempted to Start PrecisionTimer when it was already Disposed");
+
+            if (m_running)
+                return false;
+
+            if (userArgs == null) { userArgs = EventArgs.Empty; }
+
+            // Cache user event args to pass into Ticks parameter if it wasn't already set
+            if (m_eventArgs == null)
+            {
+                m_eventArgs = userArgs;
+            }
+
+            // Create and start timer.
+            m_timerID = timeSetEvent(m_period, m_resolution, m_timeProc, userTimerReference, m_mode);
+
+            // If the timer was created successfully.
+            if (m_timerID != 0)
+            {
+                m_running = true;
+                return true;
+            }
+            else
+            {
+                throw new TimerStartException("Unable to start the Precision Timer");
+            }
+        }
+
+        /// <summary>
+        /// Stop the Timer
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">Timer was already Disposed</exception>
+        internal void Stop()
+        {
+            if (m_disposed)
+                throw new ObjectDisposedException("Attempted to Stop PrecisionTimer when it was already Disposed");
+
+            if (!m_running)
+                return;
+
+            try
+            {
+                timeKillEvent(m_timerID);
+                m_timerID = 0;
+                m_running = false;
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Dispoe the Timer
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">Timer was already Diposed</exception>
         public void Dispose()
         {
             if (!m_disposed)
@@ -150,52 +282,6 @@ namespace PrecisionTiming
             }
         }
 
-        internal bool Start(EventArgs userArgs = null)
-        {
-
-            if (m_disposed)
-                throw new ObjectDisposedException("Attempted to Start PrecisionTimer when it was already Disposed");
-
-            if (m_running)
-                return false;
-
-            if (userArgs == null) { userArgs = EventArgs.Empty; }
-
-            // Cache user event args to pass into Ticks parameter
-            m_eventArgs = userArgs;
-
-            // Create and start timer.
-            m_timerID = timeSetEvent(m_period, m_resolution, m_timeProc, userTimerReference, m_mode);
-
-            // If the timer was created successfully.
-            if (m_timerID != 0)
-            {
-                m_running = true;
-                return true;
-            }
-            else
-            {
-                throw new TimerStartException("Unable to start the Precision Timer");
-            }
-        }
-
-        internal void Stop()
-        {
-            if (m_disposed)
-                throw new ObjectDisposedException("Attempted to Stop PrecisionTimer when it was already Disposed");
-
-            if (!m_running)
-                return;
-
-            try
-            {
-                timeKillEvent(m_timerID);
-                m_timerID = 0;
-                m_running = false;
-            }
-            catch { }
-        }
-
         internal void TimerEventCallback(int hwnd, int uMsg, IntPtr idEvent, int dwTime, int WTF)
         {
             if (Tick is object)
@@ -225,6 +311,6 @@ namespace PrecisionTiming
             return;
         }
 
-        #endregion [ Methods ]
+        #endregion [ Constructors / Destructor ]
     }
 }

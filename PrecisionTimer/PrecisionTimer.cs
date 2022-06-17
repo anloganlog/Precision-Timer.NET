@@ -1,14 +1,26 @@
-﻿//******************************************************************************************************
-//  Copyright © 2022, S Christison. No Rights Reserved.
-//
-//  Licensed to [You] under one or more License Agreements.
-//
-//      http://www.opensource.org/licenses/MIT
-//
-//  Unless agreed to in writing, the subject software distributed under the License is distributed on an
-//  "AS-IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//
-//******************************************************************************************************
+﻿/*
+*MIT License
+*
+*Copyright (c) 2022 S Christison
+*
+*Permission is hereby granted, free of charge, to any person obtaining a copy
+*of this software and associated documentation files (the "Software"), to deal
+*in the Software without restriction, including without limitation the rights
+*to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+*copies of the Software, and to permit persons to whom the Software is
+*furnished to do so, subject to the following conditions:
+*
+*The above copyright notice and this permission notice shall be included in all
+*copies or substantial portions of the Software.
+*
+*THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+*IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+*FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+*AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+*LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+*OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+*SOFTWARE.
+*/
 
 using System;
 
@@ -35,19 +47,21 @@ namespace PrecisionTiming
         /// </summary>
         /// <param name="TimerTask">The Action</param>
         /// <param name="Interval">The Interval for the TimerTask in Milliseconds</param>
+        /// <param name="Periodic">True if Periodic / False if OneShot</param>
         /// <param name="Start">True if the timer should start automatically with the default settings, false if you are going to configure/start it later</param>
         /// <param name="args">Optional user provided EventArgs</param>
-        public void SetInterval(Action TimerTask, int Interval, bool Start = true, EventArgs args = null)
-        {            
+        public void SetInterval(Action TimerTask, int Interval, bool Start = true, bool Periodic = true, EventArgs args = null)
+        {
             Timer = new MMTimer();
             Timer.Tick += (sender, args) => { TimerTask(); };
-            Timer.AutoReset = true;
-            Timer.Period = Interval;
-            Timer.Resolution = 0;
+            Timer.SetAutoReset = Periodic;
+            Timer.SetPeriod = Interval;
+            Timer.SetResolution = 0;
+            Timer.SetArgs = args;
 
             if (Start)
             {
-                Timer.Start(args);
+                Timer.Start();
             }
         }
 
@@ -64,14 +78,14 @@ namespace PrecisionTiming
         /// <summary>
         /// Start the <see cref="PrecisionTimer"/>
         /// </summary>
-        public void Start()
+        public void Start(EventArgs args = null)
         {
             if (CheckTimerValid())
             {
-                if (Timer.Start())
+                if (Timer.Start(args))
                 {
                     if (Started is object)
-                        Started(this, EventArgs.Empty);
+                        Started(this, args);
                 }
             }
         }
@@ -79,19 +93,19 @@ namespace PrecisionTiming
         /// <summary>
         /// Stop the <see cref="PrecisionTimer"/>
         /// </summary>
-        public void Stop()
+        public void Stop(EventArgs args = null)
         {
-            if (CheckTimerValid())
+            if (Timer != null)
             {
                 Timer.Stop();
 
                 if (Stopped is object)
-                    Stopped(this, EventArgs.Empty);
+                    Stopped(this, args);
             }
         }
 
         /// <summary>
-        /// Set the Action of the <see cref="PrecisionTimer"/>
+        /// Set the Action of the <see cref="PrecisionTimer"/> before you Start the Timer
         /// </summary>
         /// <param name="TimerTask">The Action</param>
         public void SetAction(Action TimerTask)
@@ -103,39 +117,72 @@ namespace PrecisionTiming
         }
 
         /// <summary>
-        /// Set the Period of the <see cref="PrecisionTimer"/>
+        /// Set the Interval (Period) of the <see cref="PrecisionTimer"/> before you Start the Timer
         /// </summary>
-        public void SetPeriod(int Interval)
+        public void SetInterval(int Interval)
         {
             if (CheckTimerValid())
             {
-                Timer.Period = Interval;
+                Timer.SetPeriod = Interval;
             }
         }
 
         /// <summary>
-        /// Set the Resolution of the <see cref="PrecisionTimer"/>
+        /// Get the Interval (Period) of the <see cref="PrecisionTimer"/>
+        /// </summary>
+        public int GetInterval => Timer.GetPeriod;
+
+        /// <summary>
+        /// Set the Resolution of the <see cref="PrecisionTimer"/> before you Start the Timer
         /// <para>Default: 0</para>
         /// </summary>
         public void SetResolution(int Resolution)
         {
             if (CheckTimerValid())
             {
-                Timer.Resolution = Resolution;
+                Timer.SetResolution = Resolution;
             }
         }
 
         /// <summary>
-        /// Set to True if the TimerTask should reset after it runs or only fire once (Repeat)
-        /// <para>Default: True</para>
+        /// Get the Resolution of the <see cref="PrecisionTimer"/>
+        /// <para>Default: 0</para>
         /// </summary>
-        public void SetAutoReset(bool AutoReset)
+        public int GetResolution => Timer.GetResolution;
+
+        /// <summary>
+        /// Set the Periodic/OneShot Mode of the <see cref="PrecisionTimer"/> before you Start the Timer
+        /// <para>Default:True (Periodic)</para>
+        /// </summary>
+        public void SetPeriodic(bool periodic)
         {
             if (CheckTimerValid())
             {
-                Timer.AutoReset = AutoReset;
+                Timer.SetAutoReset = periodic;
             }
         }
+
+        /// <summary>
+        /// Set the Periodic/OneShot Mode of the <see cref="PrecisionTimer"/>
+        /// <para>Default:True (Periodic)</para>
+        /// </summary>
+        public bool GetPeriodic => Timer.GetAutoReset;
+
+        /// <summary>
+        /// Set Event Args of the <see cref="PrecisionTimer"/> before you Start the Timer
+        /// </summary>
+        public void SetEventArgs(EventArgs args)
+        {
+            if (CheckTimerValid())
+            {
+                Timer.SetArgs = args;
+            }
+        }
+
+        /// <summary>
+        /// Get Event Args for the Timer
+        /// </summary>
+        public EventArgs GetEventArgs => Timer.GetArgs;
 
         /// <summary>
         /// Release all resources for this <see cref="PrecisionTimer"/>
@@ -151,7 +198,7 @@ namespace PrecisionTiming
         {
             if (Timer == null)
             {
-                throw new TimerNotConfigured("You must configure the PrecisionTimer with SetInterval before you can use Set/Start/Stop");
+                Timer = new MMTimer();
             }
 
             return true;
