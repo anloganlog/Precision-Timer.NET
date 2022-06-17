@@ -1,3 +1,10 @@
+### Version 2.2.4
+- [x] Add Example
+- [x] Expose `Tick` Event
+- [x] Expose `Stopped` Event
+- [x] Expose `Started` Event
+- [x] `Dispose` is really `Destroy`
+
 ### Version 2.2.3
 - [x] Nullable
 
