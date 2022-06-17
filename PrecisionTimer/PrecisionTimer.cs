@@ -28,6 +28,9 @@ namespace PrecisionTiming
 {
     /// <summary>
     /// High Resolution Multimedia Timer Wrapper
+    /// <para>The default timer will Fire the Tick event every 1 Millisecond forever</para>
+    /// <para>Subscribe to <see cref="EventHandler"/> <see cref="Tick"/></para>
+    /// <para>You can also provide a Task using <see cref="SetAction"/> or <see cref="SetInterval(Action, int, bool, bool, EventArgs)"/></para>
     /// </summary>
     public class PrecisionTimer
     {
@@ -37,12 +40,12 @@ namespace PrecisionTiming
         public EventHandler Started;
 
         /// <summary>
-        /// Occurs when the <see cref="PrecisionTimer"/> has started.
+        /// Occurs when the <see cref="PrecisionTimer"/> has stopped.
         /// </summary>
         public EventHandler Stopped;
 
         /// <summary>
-        /// Occurs when the <see cref="PrecisionTimer"/> Ticks.
+        /// Occurs when the <see cref="PrecisionTimer"/> Ticks at the Interval.
         /// </summary>
         public EventHandler Tick;
 
@@ -82,6 +85,7 @@ namespace PrecisionTiming
 
         /// <summary>
         /// Set the Action of the <see cref="PrecisionTimer"/> before you Start the Timer
+        /// <para>You could also subscribe to the Event <see cref="Tick"/></para>
         /// </summary>
         /// <param name="TimerTask">The Action</param>
         public void SetAction(Action TimerTask)
