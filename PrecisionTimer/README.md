@@ -1,4 +1,7 @@
-## Version 2.2.2
+### Version 2.2.3
+- [x] Nullable
+
+### Version 2.2.2
 - [x] `SetAction`
 - [x] `GetPeriod`
 - [x] `SetPeriod` - Set Before Start
