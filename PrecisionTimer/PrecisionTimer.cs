@@ -42,6 +42,16 @@ namespace PrecisionTiming
         public event EventHandler Stopped;
 
         /// <summary>
+        /// True if the Timer is running
+        /// Will also be false if no <see cref="PrecisionTimer"/> is configured
+        /// </summary>
+        /// <returns></returns>
+        public bool? IsRunning()
+        {
+            return Timer?.IsRunning;
+        }
+
+        /// <summary>
         /// Set the Interval and Tick Event of the <see cref="PrecisionTimer"/> and decide if it should start automatically
         /// Start the timer with the default settings
         /// </summary>
@@ -66,13 +76,15 @@ namespace PrecisionTiming
         }
 
         /// <summary>
-        /// True if the Timer is running
-        /// Will also be false if no <see cref="PrecisionTimer"/> is configured
+        /// Set the Action of the <see cref="PrecisionTimer"/> before you Start the Timer
         /// </summary>
-        /// <returns></returns>
-        public bool IsRunning()
+        /// <param name="TimerTask">The Action</param>
+        public void SetAction(Action TimerTask)
         {
-            return Timer != null ? Timer.IsRunning : false;
+            if (CheckTimerValid())
+            {
+                Timer.Tick += (sender, args) => { TimerTask(); };
+            }
         }
 
         /// <summary>
@@ -105,18 +117,6 @@ namespace PrecisionTiming
         }
 
         /// <summary>
-        /// Set the Action of the <see cref="PrecisionTimer"/> before you Start the Timer
-        /// </summary>
-        /// <param name="TimerTask">The Action</param>
-        public void SetAction(Action TimerTask)
-        {
-            if (CheckTimerValid())
-            {
-                Timer.Tick += (sender, args) => { TimerTask(); };
-            }
-        }
-
-        /// <summary>
         /// Set the Interval (Period) of the <see cref="PrecisionTimer"/> before you Start the Timer
         /// </summary>
         public void SetInterval(int Interval)
@@ -130,7 +130,7 @@ namespace PrecisionTiming
         /// <summary>
         /// Get the Interval (Period) of the <see cref="PrecisionTimer"/>
         /// </summary>
-        public int GetInterval => Timer.GetPeriod;
+        public int? GetInterval => Timer?.GetPeriod;
 
         /// <summary>
         /// Set the Resolution of the <see cref="PrecisionTimer"/> before you Start the Timer
@@ -148,7 +148,7 @@ namespace PrecisionTiming
         /// Get the Resolution of the <see cref="PrecisionTimer"/>
         /// <para>Default: 0</para>
         /// </summary>
-        public int GetResolution => Timer.GetResolution;
+        public int? GetResolution => Timer?.GetResolution;
 
         /// <summary>
         /// Set the Periodic/OneShot Mode of the <see cref="PrecisionTimer"/> before you Start the Timer
@@ -166,7 +166,7 @@ namespace PrecisionTiming
         /// Set the Periodic/OneShot Mode of the <see cref="PrecisionTimer"/>
         /// <para>Default:True (Periodic)</para>
         /// </summary>
-        public bool GetPeriodic => Timer.GetAutoReset;
+        public bool? GetPeriodic => Timer?.GetAutoReset;
 
         /// <summary>
         /// Set Event Args of the <see cref="PrecisionTimer"/> before you Start the Timer
@@ -182,7 +182,7 @@ namespace PrecisionTiming
         /// <summary>
         /// Get Event Args for the Timer
         /// </summary>
-        public EventArgs GetEventArgs => Timer.GetArgs;
+        public EventArgs GetEventArgs => Timer?.GetArgs;
 
         /// <summary>
         /// Release all resources for this <see cref="PrecisionTimer"/>
