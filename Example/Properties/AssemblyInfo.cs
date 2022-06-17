@@ -22,23 +22,11 @@
 *SOFTWARE.
 */
 
-using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
-namespace PrecisionTiming
-{
-    /// <summary>
-    /// Occurs when there is an error during the <see cref="PrecisionTimer"/>s Elapsed Event
-    /// </summary>
-    [Serializable]
-    public class TimerTaskFailed : Exception
-    {
-        /// <summary>
-        /// Occurs when there is an error during the <see cref="PrecisionTimer"/>s Elapsed Event
-        /// </summary>
-        /// <param name="message">User friendly error message</param>
-        public TimerTaskFailed(string message)
-            : base(message)
-        {
-        }
-    }
-}
+[assembly: AssemblyTitle("Example")]
+[assembly: ComVisible(false)]
+[assembly: Guid("3866cb4e-3cb2-43b8-b7a8-2590a784c36a")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

@@ -32,7 +32,10 @@ namespace PrecisionTiming
     {
         #region [ Members ]
 
-        internal event EventHandler Tick;
+        internal EventHandler Started;
+        internal EventHandler Stopped;
+
+        internal EventHandler Tick;
 
         private volatile IntPtr userTimerReference = IntPtr.Zero; // We MUST hold a reference to this timer
 
@@ -213,6 +216,8 @@ namespace PrecisionTiming
             if (m_timerID != 0)
             {
                 m_running = true;
+                if (Started is object)
+                    Started(this, null);
                 return true;
             }
             else
@@ -237,19 +242,24 @@ namespace PrecisionTiming
             {
                 timeKillEvent(m_timerID);
                 m_timerID = 0;
+                if (Stopped is object)
+                    Stopped(this, null);
                 m_running = false;
             }
             catch { }
         }
 
         /// <summary>
-        /// Dispoe the Timer
+        /// Dispose the Timer
         /// </summary>
         /// <exception cref="ObjectDisposedException">Timer was already Diposed</exception>
         public void Dispose()
         {
             if (!m_disposed)
             {
+                Tick = null;
+                Started = null;
+                Stopped = null;
                 Dispose(true);
                 GC.SuppressFinalize(this);
             }

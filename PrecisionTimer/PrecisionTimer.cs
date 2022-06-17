@@ -34,12 +34,17 @@ namespace PrecisionTiming
         /// <summary>
         /// Occurs when the <see cref="PrecisionTimer"/> has started.
         /// </summary>
-        public event EventHandler Started;
+        public EventHandler Started;
 
         /// <summary>
-        /// Occurs when the <see cref="PrecisionTimer"/> has stopped.
+        /// Occurs when the <see cref="PrecisionTimer"/> has started.
         /// </summary>
-        public event EventHandler Stopped;
+        public EventHandler Stopped;
+
+        /// <summary>
+        /// Occurs when the <see cref="PrecisionTimer"/> Ticks.
+        /// </summary>
+        public EventHandler Tick;
 
         /// <summary>
         /// True if the Timer is running
@@ -94,11 +99,10 @@ namespace PrecisionTiming
         {
             if (CheckTimerValid())
             {
-                if (Timer.Start(args))
-                {
-                    if (Started is object)
-                        Started(this, args);
-                }
+                Timer.Started += Started;
+                Timer.Stopped += Stopped;
+                Timer.Tick += Tick;
+                Timer.Start(args);
             }
         }
 
@@ -110,9 +114,9 @@ namespace PrecisionTiming
             if (Timer != null)
             {
                 Timer.Stop();
-
-                if (Stopped is object)
-                    Stopped(this, args);
+                Timer.Tick -= Tick;
+                Timer.Started -= Started;
+                Timer.Stopped -= Stopped;
             }
         }
 
@@ -185,11 +189,16 @@ namespace PrecisionTiming
         public EventArgs GetEventArgs => Timer?.GetArgs;
 
         /// <summary>
+        /// <para>DESTROY</para>
         /// Release all resources for this <see cref="PrecisionTimer"/>
+        /// <para>If you call Dispose when you intend to create a new Timer you will have a bad time..r</para>
         /// </summary>
         public void Dispose()
         {
-            Timer?.Dispose();
+            if (Timer != null)
+            {
+                Timer.Dispose();
+            }
         }
 
         internal volatile MMTimer Timer;
