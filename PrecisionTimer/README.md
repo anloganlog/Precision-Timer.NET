@@ -1,3 +1,6 @@
+### Version 2.2.4.1
+- [x] Documentation
+
 ### Version 2.2.4
 - [x] Add Example
 - [x] Expose `Tick` Event
