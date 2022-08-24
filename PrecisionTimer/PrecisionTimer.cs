@@ -74,7 +74,6 @@ namespace PrecisionTiming
             Timer.Tick += (sender, args) => { TimerTask(); };
             Timer.SetAutoReset = Periodic;
             Timer.SetPeriod = Interval;
-            Timer.SetResolution = 0;
             Timer.SetArgs = args;
 
             if (Start)

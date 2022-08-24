@@ -61,7 +61,7 @@ namespace PrecisionTiming
             m_running = false;
             m_timeProc = TimerEventCallback;
             m_period = Capabilities.PeriodMinimum;
-            m_resolution = 1;
+            m_resolution = Capabilities.PeriodMinimum;
         }
 
         ~MMTimer()
