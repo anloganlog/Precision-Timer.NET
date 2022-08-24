@@ -1,3 +1,8 @@
+### Version 2.2.4.3
+- [x] Fixes a bug that was causing event duplication
+- [x] Throw on out of range exception
+- [x] Improve Test
+
 ### Version 2.2.4.1
 - [x] Documentation
 
