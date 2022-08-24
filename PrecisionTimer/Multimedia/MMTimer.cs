@@ -139,9 +139,9 @@ namespace PrecisionTiming
                     throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer resolution out of range, max value is: " + Capabilities.PeriodMaximum);
                 }
 
-                if (value < Capabilities.PeriodMinimum)
+                if (value < 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer resolution out of range, min value is: " + Capabilities.PeriodMinimum);
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer resolution out of range, min value is 0");
                 }
 
                 m_resolution = value;

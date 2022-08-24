@@ -73,6 +73,7 @@ namespace PrecisionTiming
             Timer = new MMTimer();
             Timer.Tick += (sender, args) => { TimerTask(); };
             Timer.SetAutoReset = Periodic;
+            Timer.SetResolution = 0;
             Timer.SetPeriod = Interval;
             Timer.SetArgs = args;
 
