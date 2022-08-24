@@ -1,3 +1,6 @@
+### Version 2.2.4.5
+- [x] Fix Minimum Resolution (0 = use best available resolution)
+
 ### Version 2.2.4.4
 - [x] Fix out of range exception
 
