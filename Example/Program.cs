@@ -42,35 +42,21 @@ namespace Example
 
             //pt.SetInterval(Action, Interval, Start, Periodic, EventArgs);
             pt.SetInterval(1);
-            pt.Start();            
+            pt.Start();
 
             Task.Run(async () =>
             {
-                for (int i = 0; i < 1; i++)
-                {
-                    // 1ms according to Task.Delay is about 10-15ms depending on your hardware               
-                    await Task.Delay(1).ConfigureAwait(false);
-                    // So Precision Timer will tick 10-15 times depending on your hardware
-                }
-
-                pt.Stop();
-
-                pt.Start();
-                for (int i = 0; i < 1; i++)
-                {
-                    // 1ms according to Task.Delay is about 10-15ms depending on your hardware
-                    await Task.Delay(1).ConfigureAwait(false);
-                    // So Precision Timer will tick 10-15 times depending on your hardware
-                }
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Stop();
                 pt.Start();
-                for (int i = 0; i < 1; i++)
-                {
-                    // 1ms according to Task.Delay is about 10-15ms depending on your hardware
-                    await Task.Delay(1).ConfigureAwait(false);
-                    // So Precision Timer will tick 10-15 times depending on your hardware
-                }
+                // 1ms according to Task.Delay is about 10-15ms depending on your hardware
+                await Task.Delay(1).ConfigureAwait(false);
+                // So Precision Timer will tick 10-15 times depending on your hardware
+
+                pt.Stop();
+                pt.Start();
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Stop();
 
@@ -80,38 +66,19 @@ namespace Example
                 pt.SetPeriodic(false);
 
                 pt.Start();
-
-                for (int i = 0; i < 1; i++)
-                {
-                    await Task.Delay(1).ConfigureAwait(false);
-                }
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Stop();
-
                 pt.Start();
-
-                for (int i = 0; i < 1; i++)
-                {
-                    await Task.Delay(1).ConfigureAwait(false);
-                }
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Stop();
-
                 pt.Start();
-
-                for (int i = 0; i < 1; i++)
-                {
-                    await Task.Delay(1).ConfigureAwait(false);
-                }
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Stop();
-
                 pt.Start();
-
-                for (int i = 0; i < 1; i++)
-                {
-                    await Task.Delay(1).ConfigureAwait(false);
-                }
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Stop();
 
@@ -122,25 +89,13 @@ namespace Example
                 Console.WriteLine("One Shot Test Without Stopping First");
 
                 pt.Start();
-
-                for (int i = 0; i < 1; i++)
-                {
-                    await Task.Delay(1).ConfigureAwait(false);
-                }
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Start();
-
-                for (int i = 0; i < 1; i++)
-                {
-                    await Task.Delay(1).ConfigureAwait(false);
-                }
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Start();
-
-                for (int i = 0; i < 1; i++)
-                {
-                    await Task.Delay(1).ConfigureAwait(false);
-                }
+                await Task.Delay(1).ConfigureAwait(false);
 
                 pt.Stop();
 
@@ -150,13 +105,13 @@ namespace Example
                 int initialDelay = 5000;
 
                 for (int i = 0; i < 25; i++)
-                {                  
+                {
                     pt.Start();
                     await Task.Delay(1).ConfigureAwait(false);
-                    Console.WriteLine("One Shot will be fired after: " + initialDelay + "ms - " + (i + 1) + "/100");
-                      
+                    Console.WriteLine("One Shot will be fired after: " + initialDelay + "ms - " + (i + 1) + "/25");
+
                     pt.Stop();
-                    await Task.Delay(initialDelay).ConfigureAwait(false);  
+                    await Task.Delay(initialDelay).ConfigureAwait(false);
 
                     initialDelay = initialDelay * 2;
                 }
