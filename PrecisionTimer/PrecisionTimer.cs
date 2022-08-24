@@ -118,9 +118,10 @@ namespace PrecisionTiming
             if (Timer != null)
             {
                 Timer.Stop();
-                Timer.Tick -= Tick;
-                Timer.Started -= Started;
-                Timer.Stopped -= Stopped;
+
+                Timer.Tick = null;
+                Timer.Started = null;
+                Timer.Stopped = null;
             }
         }
 
@@ -171,7 +172,7 @@ namespace PrecisionTiming
         }
 
         /// <summary>
-        /// Set the Periodic/OneShot Mode of the <see cref="PrecisionTimer"/>
+        /// Get the Periodic/OneShot Mode of the <see cref="PrecisionTimer"/>
         /// <para>Default:True (Periodic)</para>
         /// </summary>
         public bool? GetPeriodic => Timer?.GetAutoReset;

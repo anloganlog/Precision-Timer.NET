@@ -38,13 +38,19 @@ namespace Example
             pt.Stopped += Stop;
             pt.Tick += Tick;
 
-            pt.Start();
+            Console.WriteLine("Periodic Test");
+
+            //pt.SetInterval(Action, Interval, Start, Periodic, EventArgs);
+            pt.SetInterval(1);
+            pt.Start();            
 
             Task.Run(async () =>
             {
                 for (int i = 0; i < 1; i++)
                 {
+                    // 1ms according to Task.Delay is about 10-15ms depending on your hardware               
                     await Task.Delay(1).ConfigureAwait(false);
+                    // So Precision Timer will tick 10-15 times depending on your hardware
                 }
 
                 pt.Stop();
@@ -52,11 +58,29 @@ namespace Example
                 pt.Start();
                 for (int i = 0; i < 1; i++)
                 {
+                    // 1ms according to Task.Delay is about 10-15ms depending on your hardware
                     await Task.Delay(1).ConfigureAwait(false);
+                    // So Precision Timer will tick 10-15 times depending on your hardware
                 }
 
                 pt.Stop();
                 pt.Start();
+                for (int i = 0; i < 1; i++)
+                {
+                    // 1ms according to Task.Delay is about 10-15ms depending on your hardware
+                    await Task.Delay(1).ConfigureAwait(false);
+                    // So Precision Timer will tick 10-15 times depending on your hardware
+                }
+
+                pt.Stop();
+
+                Console.WriteLine("-------------");
+                Console.WriteLine("One Shot Test");
+
+                pt.SetPeriodic(false);
+
+                pt.Start();
+
                 for (int i = 0; i < 1; i++)
                 {
                     await Task.Delay(1).ConfigureAwait(false);
@@ -64,7 +88,82 @@ namespace Example
 
                 pt.Stop();
 
+                pt.Start();
+
+                for (int i = 0; i < 1; i++)
+                {
+                    await Task.Delay(1).ConfigureAwait(false);
+                }
+
+                pt.Stop();
+
+                pt.Start();
+
+                for (int i = 0; i < 1; i++)
+                {
+                    await Task.Delay(1).ConfigureAwait(false);
+                }
+
+                pt.Stop();
+
+                pt.Start();
+
+                for (int i = 0; i < 1; i++)
+                {
+                    await Task.Delay(1).ConfigureAwait(false);
+                }
+
+                pt.Stop();
+
+                // One-shot timers Stop themselves, You can just call Start next time;
+                // Do not dispose unless you really mean it. (Application is exiting)
+
+                Console.WriteLine("-------------");
+                Console.WriteLine("One Shot Test Without Stopping First");
+
+                pt.Start();
+
+                for (int i = 0; i < 1; i++)
+                {
+                    await Task.Delay(1).ConfigureAwait(false);
+                }
+
+                pt.Start();
+
+                for (int i = 0; i < 1; i++)
+                {
+                    await Task.Delay(1).ConfigureAwait(false);
+                }
+
+                pt.Start();
+
+                for (int i = 0; i < 1; i++)
+                {
+                    await Task.Delay(1).ConfigureAwait(false);
+                }
+
+                pt.Stop();
+
+                Console.WriteLine("-------------");
+                Console.WriteLine("One Shot Test With Varying Delay");
+
+                int initialDelay = 5000;
+
+                for (int i = 0; i < 25; i++)
+                {                  
+                    pt.Start();
+                    await Task.Delay(1).ConfigureAwait(false);
+                    Console.WriteLine("One Shot will be fired after: " + initialDelay + "ms - " + (i + 1) + "/100");
+                      
+                    pt.Stop();
+                    await Task.Delay(initialDelay).ConfigureAwait(false);  
+
+                    initialDelay = initialDelay * 2;
+                }
+
+                pt.Stop();
                 pt.Dispose(); // DO NOT Call Dispose unless you really mean it.
+                Console.WriteLine("Timer won't start again because dispose was called");
                 pt.Start(); // <- This will not work
                 pt = new PrecisionTimer(); // <- This will not work
                 pt.Start(); // <- This will not work

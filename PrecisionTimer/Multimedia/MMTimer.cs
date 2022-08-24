@@ -96,8 +96,15 @@ namespace PrecisionTiming
                 if (m_disposed)
                     throw new ObjectDisposedException("PrecisionTimer");
 
-                if (value < Capabilities.PeriodMinimum || value > Capabilities.PeriodMaximum)
-                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer period out of range");
+                if (value > Capabilities.PeriodMaximum)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer period out of range, max value is: " + Capabilities.PeriodMaximum);
+                }
+
+                if (value < Capabilities.PeriodMinimum)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer period out of range, min value is: " + Capabilities.PeriodMinimum);
+                }
 
                 m_period = value;
             }
@@ -127,8 +134,15 @@ namespace PrecisionTiming
                 if (m_disposed)
                     throw new ObjectDisposedException("PrecisionTimer");
 
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia timer resolution out of range");
+                if (value > Capabilities.PeriodMaximum)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer resolution out of range, max value is: " + Capabilities.PeriodMaximum);
+                }
+
+                if (value < Capabilities.PeriodMinimum)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer resolution out of range, min value is: " + Capabilities.PeriodMinimum);
+                }
 
                 m_resolution = value;
             }
@@ -245,6 +259,10 @@ namespace PrecisionTiming
                 if (Stopped is object)
                     Stopped(this, null);
                 m_running = false;
+
+                Stopped = null;
+                Started = null;
+                Tick = null;
             }
             catch { }
         }
@@ -309,14 +327,13 @@ namespace PrecisionTiming
                 }
             }
 
+            // Tells the Garbage Collector to leave ALL PrecisionTimer objects alone.
+            GC.KeepAlive(this);
+
             if (m_mode == TimerMode.OneShot)
             {
                 Stop();
-                return;
             }
-
-            // Tells the Garbage Collector to leave ALL PrecisionTimer objects alone.
-            GC.KeepAlive(this);
 
             return;
         }
