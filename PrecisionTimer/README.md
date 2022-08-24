@@ -1,3 +1,6 @@
+### Version 2.2.4.4
+- [x] Fix out of range exception
+
 ### Version 2.2.4.3
 - [x] Fixes a bug that was causing event duplication
 - [x] Throw on out of range exception
