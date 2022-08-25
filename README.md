@@ -1,15 +1,18 @@
-# Precision Timer.NET
+
+# PrecisionTimer .NET
 
 [![Nuget](https://img.shields.io/nuget/v/PrecisionTimer.NET)](https://www.nuget.org/packages/PrecisionTimer.NET/)
 
 This timer is as precise as the platform you are running it on down to 1 millisecond.
  
-PrecisionTimer.NET won't randomly dispose itself, You don't need to keep a special reference to it. 
- 
-If you intend to use a lot of timers, consider using [Timer Sink.NET](https://github.com/HypsyNZ/Timer-Sink.NET)
- 
-# Usage
+`PrecisionTimer.NET` won't randomly dispose itself, You don't need to keep a special reference to it. 
 
+If you intend to use a lot of timers or you want to use `PrecisionTimer.NET` to repeat a long running task, consider using [`Timer Sink.NET`](https://www.nuget.org/packages/TimerSink.NET) as it uses `PrecisionTimer.NET` internally.
+
+# Usage
+```cs
+using PrecisionTiming;
+```
 Using Precision Timer is as simple as using any other Windows Timer.
 
 ```cs
@@ -17,9 +20,11 @@ public readonly PrecisionTimer MyTimer = new();
 MyTimer.SetInterval(SomeAction, Interval);
 ```
 
-If you use `SetInterval` to set `Action` and provide `Interval` the timer will automatically start with the default settings
+If you use `SetInterval` to set only `Action` and `Interval` the timer will automatically start with the most common defaults, but it has several optional parameters you can change
 
-If you don't want the timer to start automatically then use the following
+![](https://i.imgur.com/HdHkL17.png)
+
+For example, If you don't want the timer to start automatically then use the following
 
 ```cs
 MyTimer.SetInterval(SomeAction, Interval, false);
@@ -79,7 +84,7 @@ MyTimer.SetResolution(int);
 MyTimer.GetResolution();
 ```
 
-The resolution is in milliseconds. 
+The resolution is in milliseconds, The default resolution for `SetInterval(Action)` is 0
 
 The `Resolution` increases with smaller values.
 
@@ -139,11 +144,4 @@ Precision Timer.NET is a Multimedia Timer.
 
 You can read more about Multimedia Timers on [MSDN](https://docs.microsoft.com/en-us/windows/win32/multimedia/multimedia-timer-reference)
 
-# Tips
-
-If you found this useful pleases consider leaving a tip
-
-- [x] BTC: 1NXUg88UvRWYn1WTnikVNn2fbbEtuTeXzm
-- [x] ETH: 0x50740d132481be4721b1742670031baee3655ec2
-- [x] DOGE: DS6orKQwdK4sBTmwoS9NVqvWCKA5ksGPfa
-- [x] LTC: Lbd3oMKeokyXUQaxBDJpMMNVUws5wYhQES
+Consider using [`Timer Sink.NET`](https://www.nuget.org/packages/TimerSink.NET) instead of using PrecisionTimer.NET directly

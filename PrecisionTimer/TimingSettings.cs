@@ -40,7 +40,7 @@ namespace PrecisionTiming
         public static void SetMinimumTimerResolution(int setMinimum)
         {
             if (MMTimerExports.timeBeginPeriod(setMinimum) != 0)
-                throw new InvalidOperationException("Specified period resolution is out of range and is not supported.");
+                throw new InvalidOperationException(MMTimer.resolutionNotSupported);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace PrecisionTiming
         public static void ClearMinimumTimerResolution(int clearSetMinimum)
         {
             if (MMTimerExports.timeEndPeriod(clearSetMinimum) != 0)
-                throw new InvalidOperationException("Specified period resolution is out of range and is not supported.");
+                throw new InvalidOperationException(MMTimer.resolutionNotSupported);
         }
     }
 }

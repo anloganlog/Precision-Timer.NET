@@ -54,6 +54,7 @@ namespace PrecisionTiming
 
         internal MMTimer()
         {
+            GC.KeepAlive(this);
             timeGetDevCaps(ref Capabilities, Marshal.SizeOf(Capabilities));
 
             // Initialize timer with default values.
@@ -69,8 +70,10 @@ namespace PrecisionTiming
             Dispose(false);
         }
 
-        public bool IsRunning => m_running;
-        public EventArgs EventArgs => m_eventArgs;
+        #endregion [ Constructors / Destructor ]
+
+        internal bool IsRunning => m_running;
+        internal EventArgs EventArgs => m_eventArgs;
 
         /// <summary>
         /// Get the Current Interval (Period)
@@ -80,7 +83,7 @@ namespace PrecisionTiming
             get
             {
                 if (m_disposed)
-                    throw new ObjectDisposedException("PrecisionTimer");
+                    throw new ObjectDisposedException(disposedPeriodString);
 
                 return m_period;
             }
@@ -94,16 +97,16 @@ namespace PrecisionTiming
             set
             {
                 if (m_disposed)
-                    throw new ObjectDisposedException("PrecisionTimer");
+                    throw new ObjectDisposedException(disposedPeriodString);
 
                 if (value > Capabilities.PeriodMaximum)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer period out of range, max value is: " + Capabilities.PeriodMaximum);
+                    throw new ArgumentOutOfRangeException(nameof(value), value, outOfRangeMaxPeriod + Capabilities.PeriodMaximum);
                 }
 
                 if (value < Capabilities.PeriodMinimum)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer period out of range, min value is: " + Capabilities.PeriodMinimum);
+                    throw new ArgumentOutOfRangeException(nameof(value), value, outOfRangeMinPeriod + Capabilities.PeriodMinimum);
                 }
 
                 m_period = value;
@@ -118,7 +121,7 @@ namespace PrecisionTiming
             get
             {
                 if (m_disposed)
-                    throw new ObjectDisposedException("PrecisionTimer");
+                    throw new ObjectDisposedException(disposedResolutionString);
 
                 return m_resolution;
             }
@@ -132,16 +135,16 @@ namespace PrecisionTiming
             set
             {
                 if (m_disposed)
-                    throw new ObjectDisposedException("PrecisionTimer");
+                    throw new ObjectDisposedException(disposedResolutionString);
 
                 if (value > Capabilities.PeriodMaximum)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer resolution out of range, max value is: " + Capabilities.PeriodMaximum);
+                    throw new ArgumentOutOfRangeException(nameof(value), value, outOfRangeMaxResolution + Capabilities.PeriodMaximum);
                 }
 
                 if (value < 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(value), value, "Multimedia Timer resolution out of range, min value is 0");
+                    throw new ArgumentOutOfRangeException(nameof(value), value, outOfRangeMinResolution);
                 }
 
                 m_resolution = value;
@@ -156,7 +159,7 @@ namespace PrecisionTiming
             get
             {
                 if (m_disposed)
-                    throw new ObjectDisposedException("PrecisionTimer");
+                    throw new ObjectDisposedException(disposedEventArgsString);
 
                 return m_eventArgs;
             }
@@ -170,7 +173,7 @@ namespace PrecisionTiming
             set
             {
                 if (m_disposed)
-                    throw new ObjectDisposedException("PrecisionTimer");
+                    throw new ObjectDisposedException(disposedEventArgsString);
 
                 if (value != null)
                 {
@@ -187,7 +190,7 @@ namespace PrecisionTiming
             get
             {
                 if (m_disposed)
-                    throw (new ObjectDisposedException("PrecisionTimer"));
+                    throw (new ObjectDisposedException(disposedAutoResetString));
 
                 return (m_mode == TimerMode.Periodic);
             }
@@ -201,7 +204,7 @@ namespace PrecisionTiming
             set
             {
                 if (m_disposed)
-                    throw (new ObjectDisposedException("PrecisionTimer"));
+                    throw (new ObjectDisposedException(disposedAutoResetString));
 
                 m_mode = (value ? TimerMode.Periodic : TimerMode.OneShot);
             }
@@ -210,33 +213,31 @@ namespace PrecisionTiming
         internal bool Start(EventArgs userArgs = null)
         {
             if (m_disposed)
-                throw new ObjectDisposedException("Attempted to Start PrecisionTimer when it was already Disposed");
+                throw new ObjectDisposedException(disposedStartString);
 
             if (m_running)
                 return false;
 
-            if (userArgs == null) { userArgs = EventArgs.Empty; }
-
-            // Cache user event args to pass into Ticks parameter if it wasn't already set
-            if (m_eventArgs == null)
-            {
-                m_eventArgs = userArgs;
-            }
+            // Cache user event args to pass into Ticks parameter
+            m_eventArgs = userArgs ?? EventArgs.Empty;
 
             // Create and start timer.
+            GC.KeepAlive(userTimerReference);
             m_timerID = timeSetEvent(m_period, m_resolution, m_timeProc, userTimerReference, m_mode);
 
             // If the timer was created successfully.
             if (m_timerID != 0)
             {
                 m_running = true;
+
                 if (Started is object)
                     Started(this, null);
+
                 return true;
             }
             else
             {
-                throw new TimerStartException("Unable to start the Precision Timer");
+                throw new TimerStartException(unableToStart);
             }
         }
 
@@ -247,7 +248,7 @@ namespace PrecisionTiming
         internal void Stop()
         {
             if (m_disposed)
-                throw new ObjectDisposedException("Attempted to Stop PrecisionTimer when it was already Disposed");
+                throw new ObjectDisposedException(disposedStopString);
 
             if (!m_running)
                 return;
@@ -255,13 +256,16 @@ namespace PrecisionTiming
             try
             {
                 timeKillEvent(m_timerID);
+                GC.KeepAlive(userTimerReference);
+
                 m_timerID = 0;
-                if (Stopped is object)
-                    Stopped(this, null);
                 m_running = false;
 
-                Stopped = null;
+                if (Stopped is object)
+                    Stopped(this, null);
+
                 Started = null;
+                Stopped = null;
                 Tick = null;
             }
             catch { }
@@ -275,15 +279,15 @@ namespace PrecisionTiming
         {
             if (!m_disposed)
             {
-                Tick = null;
                 Started = null;
                 Stopped = null;
+                Tick = null;
                 Dispose(true);
                 GC.SuppressFinalize(this);
             }
             else
             {
-                throw new ObjectDisposedException("Tried to Dipose PrecisionTimer when it was already Disposed");
+                throw new ObjectDisposedException(disposedString);
             }
         }
 
@@ -306,38 +310,53 @@ namespace PrecisionTiming
             }
             else
             {
-                throw new ObjectDisposedException("Tried to Dipose PrecisionTimer when it was already Disposed");
+                throw new ObjectDisposedException(disposedString);
             }
         }
 
-        internal void TimerEventCallback(int hwnd, int uMsg, IntPtr idEvent, int dwTime, int WTF)
+        internal void TimerEventCallback(int hwnd, int uMsg, IntPtr passThePointer, int dwTime, int WTF)
         {
-            if (Tick is object)
+            try
             {
-                // Pass the Parcel
-                userTimerReference = idEvent;
-                try
-                {
-                    // Actual Tick Event
-                    Tick(this, m_eventArgs);
-                }
-                catch
-                {
-                    throw new TimerTaskFailed("Timer Task Failed [Inner]");
-                }
+                Tick(this, m_eventArgs);
             }
-
-            // Tells the Garbage Collector to leave ALL PrecisionTimer objects alone.
-            GC.KeepAlive(this);
+            catch
+            {
+                throw new TimerTaskFailed(exceptionString);
+            }
 
             if (m_mode == TimerMode.OneShot)
             {
                 Stop();
             }
 
+            // Pass the Parcel
+            userTimerReference = passThePointer;
+
             return;
         }
 
-        #endregion [ Constructors / Destructor ]
+        #region [ Strings ]
+
+        private const string exceptionString = "[Callback] Timer Task Failed - Tick EventHandler was missing";
+
+        private const string disposedString = "Tried to Dipose PrecisionTimer when it was already Disposed";
+        private const string disposedStopString = "Tried to Stop PrecisionTimer when it was already Disposed";
+        private const string disposedStartString = "Attempted to Start PrecisionTimer when it was already Disposed";
+        private const string disposedAutoResetString = "Tried to change AutoReset on PrecisionTimer when it was already Disposed";
+        private const string disposedEventArgsString = "Tried to change EventArgs on PrecisionTimer when it was already Disposed";
+        private const string disposedResolutionString = "Tried to change Resolution on PrecisionTimer when it was already Disposed";
+        private const string disposedPeriodString = "Tried to change Period on PrecisionTimer when it was already Disposed";
+
+        private const string outOfRangeMaxPeriod = "Multimedia Timer period out of range, max value is: ";
+        private const string outOfRangeMinPeriod = "Multimedia Timer period out of range, min value is: ";
+        private const string outOfRangeMaxResolution = "Multimedia Timer resolution out of range, max value is: ";
+        private const string outOfRangeMinResolution = "Multimedia Timer resolution out of range, min value is 0";
+
+        public const string windowsMultimediaAPI = "winmm.dll";
+        public const string unableToStart = "Unable to start the Precision Timer, please reconfigure, you may also be at the limit for your platform";
+        public const string resolutionNotSupported = "Specified period resolution is out of range and is not supported.";
+
+        #endregion  [ Strings ]
     }
 }

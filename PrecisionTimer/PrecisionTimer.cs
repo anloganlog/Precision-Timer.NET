@@ -30,7 +30,7 @@ namespace PrecisionTiming
     /// High Resolution Multimedia Timer Wrapper
     /// <para>The default timer will Fire the Tick event every 1 Millisecond forever</para>
     /// <para>Subscribe to <see cref="EventHandler"/> <see cref="Tick"/></para>
-    /// <para>You can also provide a Task using <see cref="SetAction"/> or <see cref="SetInterval(Action, int, bool, bool, EventArgs)"/></para>
+    /// <para>You can also provide a Task using <see cref="SetAction"/> or <see cref="SetInterval(Action, int, bool, bool, EventArgs, int)"/></para>
     /// </summary>
     public class PrecisionTimer
     {
@@ -66,20 +66,21 @@ namespace PrecisionTiming
         /// <param name="TimerTask">The Action</param>
         /// <param name="Interval">The Interval for the TimerTask in Milliseconds</param>
         /// <param name="Periodic">True if Periodic / False if OneShot</param>
-        /// <param name="Start">True if the timer should start automatically with the default settings, false if you are going to configure/start it later</param>
+        /// <param name="Resolution">Resolution for Events in milliseconds - 0 is best available on platform - 1 uses even less CPU</param>
+        /// <param name="start">True if the timer should start automatically with the default settings, false if you are going to configure/start it later</param>
         /// <param name="args">Optional user provided EventArgs</param>
-        public void SetInterval(Action TimerTask, int Interval, bool Start = true, bool Periodic = true, EventArgs args = null)
+        public void SetInterval(Action TimerTask, int Interval, bool start = true, bool Periodic = true, EventArgs args = null, int Resolution = 0)
         {
             Timer = new MMTimer();
             Timer.Tick += (sender, args) => { TimerTask(); };
             Timer.SetAutoReset = Periodic;
-            Timer.SetResolution = 0;
+            Timer.SetResolution = Resolution;
             Timer.SetPeriod = Interval;
             Timer.SetArgs = args;
 
-            if (Start)
+            if (start)
             {
-                Timer.Start();
+                Start(args);
             }
         }
 
@@ -101,12 +102,20 @@ namespace PrecisionTiming
         /// </summary>
         public void Start(EventArgs args = null)
         {
-            if (CheckTimerValid())
+            if (Timer.Started is not object)
             {
                 Timer.Started += Started;
                 Timer.Stopped += Stopped;
                 Timer.Tick += Tick;
+            }
+
+            if (CheckTimerValid())
+            {
                 Timer.Start(args);
+            }
+            else
+            {
+                throw new TimerStartException(MMTimer.unableToStart);
             }
         }
 
@@ -118,10 +127,6 @@ namespace PrecisionTiming
             if (Timer != null)
             {
                 Timer.Stop();
-
-                Timer.Tick = null;
-                Timer.Started = null;
-                Timer.Stopped = null;
             }
         }
 
@@ -204,6 +209,22 @@ namespace PrecisionTiming
             {
                 Timer.Dispose();
             }
+        }
+
+        /// <summary>
+        /// Create a PrecisionTimer and tell the Garbage Collector to leave it alone
+        /// </summary>
+        public PrecisionTimer()
+        {
+            GC.KeepAlive(this);
+        }
+
+        /// <summary>
+        /// Destroy
+        /// </summary>
+        ~PrecisionTimer()
+        {
+            Dispose();
         }
 
         internal volatile MMTimer Timer;

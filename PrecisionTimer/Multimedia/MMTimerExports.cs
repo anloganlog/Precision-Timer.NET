@@ -29,19 +29,19 @@ namespace PrecisionTiming
 {
     internal static class MMTimerExports
     {
-        [DllImport("winmm.dll")]
+        [DllImport(MMTimer.windowsMultimediaAPI)]
         internal static extern int timeBeginPeriod(int period);
 
-        [DllImport("winmm.dll")]
+        [DllImport(MMTimer.windowsMultimediaAPI)]
         internal static extern int timeEndPeriod(int period);
 
-        [DllImport("winmm.dll")]
+        [DllImport(MMTimer.windowsMultimediaAPI)]
         internal static extern int timeGetDevCaps(ref TimerCapabilities caps, int sizeOfTimerCaps);
 
-        [DllImport("winmm.dll")]
+        [DllImport(MMTimer.windowsMultimediaAPI)]
         internal static extern int timeKillEvent(int id);
 
-        [DllImport("winmm.dll")]
+        [DllImport(MMTimer.windowsMultimediaAPI)]
         internal static extern int timeSetEvent(int delay, int resolution, TimerProc proc, IntPtr user, TimerMode mode);
 
         internal delegate void TimerProc(int hwnd, int uMsg, IntPtr idEvent, int dwTime, int WTFref);
