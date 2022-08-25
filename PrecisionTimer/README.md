@@ -1,3 +1,9 @@
+### Version 2.2.4.6
+- [x] Garbage Collection Changes
+- [x] More Detailed Example
+- [x] Fix some edge cases
+- [x] Make it easier to change `Resolution`
+
 ### Version 2.2.4.5
 - [x] Fix Minimum Resolution (0 = use best available resolution)
 
