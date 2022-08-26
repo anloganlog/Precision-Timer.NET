@@ -24,24 +24,35 @@
 
 using PrecisionTiming;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Example
 {
+    /// <summary>
+    /// Using the Action() is faster than the Tick EventHandler
+    /// If you use both the Tick comes after the Action()
+    /// </summary>
     internal class Program
     {
-        private static PrecisionTimer timer = new PrecisionTimer();
+        private static PrecisionTimer PrecisionTimer = new PrecisionTimer();                // You should always make PrecisionTimers static if you can
+        private static PrecisionTimerEvent PrecisionTimerEvent = new PrecisionTimerEvent(); // Event only version of PrecisionTimer
 
         // Actions
         private static Action Action = () =>
         {
-            Console.WriteLine("Some Action");
+            // timer.Tick = null;
+            // Using an Action is the fastest option
+            ActionCount++;
+
+            Console.WriteLine("[" + ActionCount + "] Some Action");
         };
 
-        private static Task SomeOtherAction()
+        private static Action SomeOtherAction = () =>
         {
-            Console.WriteLine("Some Other Action"); return Task.CompletedTask;
-        }
+            ActionCount++;
+            Console.WriteLine("[" + ActionCount + "] Some Other Action");
+        };
 
         // Events
         private static void Started(object sender, EventArgs args)
@@ -54,121 +65,319 @@ namespace Example
             Console.WriteLine("Timer Stopped");
         }
 
+        // You could use PrecisionTimerEvent instead if you only want a 1ms Tick Event and don't use Action()
         private static void Tick(object sender, EventArgs args)
         {
+            // Tick Event triggers after Action();
+
+            try
+            {
+                //List<bool> f = new List<bool>(); f.Where(c => f.Equals(true)).Single();
+            }
+            catch
+            {
+                // InvalidOperationException would be Ignored
+            }
+
+            //List<bool> f = new List<bool>(); f.Where(c => f.Equals(true)).Single();  // InvalidOperationException Crash
+            // PrecisionTimer.NET does not handle exceptions for you.
+
             Console.WriteLine("Timer Ticked");
         }
 
         // Main
         private static void Main(string[] args)
         {
-            // Subscribe Events
-            timer.Started += Started;
-            timer.Stopped += Stop;
-            timer.Tick += Tick;
+            //PrecisionTimerSettings.SetMinimumTimerResolution(0);
 
-            Console.WriteLine("Periodic Test");
-
-            //pt.SetInterval(Action, Interval, Start, Periodic, EventArgs);
-
-            timer.SetResolution(0); // Best resolution available, still uses very little CPU
-            //timer.SetResolution(1); // less CPU usage
-            //timer.SetResolution(2); // etc..
-
-            timer.SetInterval(Action, 1, Resolution: 1); // Default resolution is 0 when using SetInterval
-
-            //ReusablePrecisionTimer.SetAction(Action);    // You can set these individually or use some combination of SetInterval
-            timer.Start();
-
-            Console.WriteLine("IsRunning: " + timer.IsRunning());
+            Console.WindowHeight = 50;
+            Console.WindowWidth = 56;
 
             Task.Run(async () =>
             {
-                await Task.Delay(1).ConfigureAwait(false);
+                // Subscribe Events
+                PrecisionTimer.Started += Started;
+                PrecisionTimer.Stopped += Stop;
+                //PrecisionTimer.Tick += Tick;
 
-                timer.Stop();
-                timer.SetInterval(Action, 1);
-                timer.Start();
-                // 1ms according to Task.Delay is about 10-15ms depending on your hardware
-                await Task.Delay(1).ConfigureAwait(false);
-                // So Precision Timer will tick 10-15 times depending on your hardware
+                PrecisionTimer.SetResolution(0); // Best resolution available, still uses very little CPU
+                //PrecisionTimer.Resolution = 1; // less CPU usage
+                //PrecisionTimer.Resolution = 2; // etc..
 
-                timer.Stop();
-                timer.SetInterval(Action, 1);
-                timer.Start();
-                await Task.Delay(1).ConfigureAwait(false);
-                timer.Stop();
-                Console.WriteLine("-------------");
-                Console.WriteLine("One Shot Test");
+                //pt.SetInterval(Action, Interval, Start, Periodic, EventArgs, Resolution);
+                PrecisionTimer.SetInterval(Action, 1, resolution: 1, start: false); // Default resolution is 0 when using SetInterval
+                //PrecisionTimer.Configure(Action, 1, resolution: 1, start: false); // You can also use Configure in place of SetInterval
 
-                timer.SetInterval(Action, 1, start: false, Periodic: false);
-                timer.Start();
-                await Task.Delay(1).ConfigureAwait(false);
+                await PeriodicTest();
 
-                timer.Stop();
-                timer.SetInterval(Action, 1, Periodic: false); // Set interval will call start with these settings
-                timer.Start(); // calling start again by accident won't do anything now
-                await Task.Delay(1).ConfigureAwait(false);
+                await OneShotTests();
 
-                timer.Stop();
-                timer.SetInterval(Action, 1, start: false, Periodic: false);
-                timer.Start();
-                await Task.Delay(1).ConfigureAwait(false);
+                await DisposeTest(false);
 
-                timer.Stop();
-                timer.SetInterval(() => { SomeOtherAction().ConfigureAwait(false); }, 1, start: false, Periodic: false);
-                timer.Start();
-                await Task.Delay(1).ConfigureAwait(false);
+                await PrecisionTimerEventTest();
 
-                timer.Stop();
+                await TestGarbageCollector();
 
-                // One-shot timers Stop themselves, You can just call Start next time;
-                // Do not dispose unless you really mean it. (Application is exiting)
-
-                Console.WriteLine("-------------");
-                Console.WriteLine("One Shot Test Without Stopping Manually First");
-
-                timer.SetInterval(Action, 1, start: false, Periodic: false);
-                timer.Start();
-                await Task.Delay(1).ConfigureAwait(false);
-
-                timer.SetInterval(() => { SomeOtherAction().ConfigureAwait(false); }, 1, start: false, Periodic: false);
-                timer.Start();
-                await Task.Delay(1).ConfigureAwait(false);
-
-                timer.SetInterval(Action, 1, start: false, Periodic: false);
-                timer.Start();
-                await Task.Delay(1).ConfigureAwait(false);
-
-                timer.Stop();
-
-                Console.WriteLine("-------------");
-                Console.WriteLine("One Shot Test With Varying Delay (GC Test)");
-
-                int initialDelay = 5000;
-
-                for (int i = 0; i < 25; i++)
-                {
-                    timer.SetInterval(Action, 1, Periodic: false); // Set Interval can call Start by itself
-
-                    await Task.Delay(1).ConfigureAwait(false);
-                    Console.WriteLine("One Shot will be fired after: " + initialDelay + "ms - " + (i + 1) + "/25");
-
-                    timer.Stop();
-                    await Task.Delay(initialDelay).ConfigureAwait(false);
-
-                    initialDelay = initialDelay * 2;
-                }
-
-                timer.Stop();
-                timer.Dispose(); // DO NOT Call Dispose unless you really mean it, It really means Destroy
-                Console.WriteLine("Timer won't start again because dispose was called");
-                timer.Start(); // <- This will not work
-                timer = new PrecisionTimer(); // <- This will not work
-                timer.Start(); // <- This will not work
+                Console.WriteLine("Test Completed");
+                //PrecisionTimerSettings.ClearMinimumTimerResolution(0);
             });
+
 
             Console.ReadLine();
         }
+
+        /// <summary>
+        /// Start a PrecisionTimer and then wait 100ms with Task.Delay to see how many times the callback fires
+        /// <para>Task.Delay isn't very accurate sometimes so depending on your hardware the callback will fire 95-120 times</para>
+        /// </summary>
+        /// <returns></returns>
+        private static async Task PeriodicTest()
+        {
+            ActionCount = 0;
+
+            Console.WriteLine("-------------");
+            Console.WriteLine("Periodic Test");
+            Console.WriteLine("How long does Task.Delay think 100ms is right now?");
+            Console.WriteLine("-------------");
+            await Task.Delay(1000);
+
+            PrecisionTimer.Start();
+            await Task.Delay(100);
+            PrecisionTimer.Stop();
+
+            await Task.Delay(2);
+            Console.WriteLine(ActionCount + "/100ish"); ActionCount = 0;
+
+            Console.WriteLine("-------------");
+        }
+
+        /// <summary>
+        /// Start a PrecisionTimer as a one-shot timer and then use Task.Delay to simulate some other work before it was needed again.
+        /// It is not recommended to use Task.Delay for small delays
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private static async Task OneShotTests()
+        {
+            Console.WriteLine("-------------");
+            Console.WriteLine("One-Shot Test");
+            Console.WriteLine("One-Shot Timers Stop themselves, You can just call Start next time");
+            Console.WriteLine("-------------");
+
+            await Task.Delay(1000);
+            PrecisionTimer.SetInterval(Action, 1, start: false, periodic: false);
+            if (PrecisionTimer.Start())
+            {
+                Console.WriteLine("-------1-------");
+            }
+
+            // Timers must be stopped to reconfigure some settings or will throw a TimerRunningException, eg.
+            // PrecisionTimer.SetInterval(1);
+            // PrecisionTimer.SetAutoResetMode(false);
+            // PrecisionTimer.SetResolution(0);
+
+            await Task.Delay(2);
+            PrecisionTimer.SetInterval(Action, 1, periodic: false);
+            if (PrecisionTimer.Start())
+            {
+                Console.WriteLine("-------2-------" + " | IsRunning: " + PrecisionTimer.IsRunning());
+            }
+
+            await Task.Delay(2);
+            PrecisionTimer.SetInterval(Action, 1, periodic: false); // SetInterval will call start for you with these settings
+            if (PrecisionTimer.Start()) // If you start the timer with SetInterval, this will just confirm the timer IsRunning
+            {
+                Console.WriteLine("-------3-------");
+            }
+
+            await Task.Delay(2);
+            PrecisionTimer.Stop(); // Does nothing after the callback because this is a one-shot timer and it already stopped
+            PrecisionTimer.SetInterval(SomeOtherAction, 1, start: false, periodic: false);
+            if (PrecisionTimer.Start())
+            {
+                Console.WriteLine("-------4-------");
+            }
+
+            await Task.Delay(2);
+            PrecisionTimer.SetAction(Action); // One-shot can configure Action() without stopping
+            if (PrecisionTimer.Start())
+            {
+                Console.WriteLine("-------5-------");
+            }
+
+            await Task.Delay(2);
+            PrecisionTimer.SetInterval(SomeOtherAction, 1, start: false, periodic: false);
+            if (PrecisionTimer.Start())
+            {
+                Console.WriteLine("-------6-------");
+            }
+
+            await Task.Delay(2);
+            PrecisionTimer.SetInterval(Action, 1, start: false, periodic: false);
+            if (PrecisionTimer.Start())
+            {
+                Console.WriteLine("-------7-------");
+            }
+
+            await Task.Delay(2);
+            Console.WriteLine(ActionCount + "/7");
+            if (ActionCount < 7)
+            {
+                Console.WriteLine("Failed"); // Task.Delay(0);
+                throw new Exception("Failed"); // Task.Delay is literally broken
+            }
+
+            ActionCount = 0;
+
+            Console.WriteLine("-------------");
+            Console.WriteLine("One-Shot Test");
+            Console.WriteLine("One-Shot Timers Stop themselves, You can just call Start next time");
+            Console.WriteLine("-------------");
+            await Task.Delay(1000).ConfigureAwait(false);
+
+            PrecisionTimer.SetInterval(Action, 1, periodic: false);
+            await Task.Delay(35).ConfigureAwait(false);
+            Console.WriteLine("-------1-------");
+
+            PrecisionTimer.SetAction(SomeOtherAction);  // You can set just the Action and then Start again
+            PrecisionTimer.Start();
+            await Task.Delay(22).ConfigureAwait(false);
+            Console.WriteLine("-------2-------");
+
+            PrecisionTimer.SetInterval(Action, 20, periodic: false);
+            PrecisionTimer.Start();
+            await Task.Delay(20).ConfigureAwait(false);
+            Console.WriteLine("-------3-------");
+
+            PrecisionTimer.SetInterval(Action, 40, periodic: false);
+            PrecisionTimer.Start();
+            await Task.Delay(40).ConfigureAwait(false);
+            Console.WriteLine("-------4-------");
+
+            PrecisionTimer.SetInterval(Action, 40, periodic: false);
+            PrecisionTimer.Start();
+            await Task.Delay(40).ConfigureAwait(false);
+            Console.WriteLine("-------5-------");
+
+            PrecisionTimer.SetAction(SomeOtherAction);
+            PrecisionTimer.Start();
+            await Task.Delay(144).ConfigureAwait(false);
+            Console.WriteLine("-------6-------");
+
+            PrecisionTimer.Stop();
+
+            Console.WriteLine(ActionCount + "/6");
+            if (ActionCount < 6)
+            {
+                Console.WriteLine("Failed");
+                throw new Exception("Failed");
+            }
+
+            ActionCount = 0;
+            Console.WriteLine("-------------");
+        }
+
+        /// <summary>
+        /// Start a PrecisionTimerEvent and then wait 100ms with Task.Delay to see how many times the callback fires
+        /// <para>Task.Delay isn't very accurate sometimes so depending on your hardware the callback will fire 95-120 times</para>
+        /// </summary>
+        /// <returns></returns>
+        private static async Task PrecisionTimerEventTest()
+        {
+            ActionCount = 0;
+
+            Console.WriteLine("-------------");
+            Console.WriteLine("PrecisionTimerEvent Test");
+            Console.WriteLine("How long does Task.Delay think 100ms is right now using Only Events?");
+            Console.WriteLine("-------------");
+            await Task.Delay(1000);
+
+            PrecisionTimerEvent.Tick += TickEventOnly;
+
+            PrecisionTimerEvent.Start();
+            await Task.Delay(100);
+            PrecisionTimerEvent.Stop();
+
+            Console.WriteLine(eventTestCount + "/100ish"); eventTestCount = 0;
+
+            PrecisionTimerEvent.Dispose();
+
+            Console.WriteLine("-------------");
+        }
+
+
+        /// <summary>
+        /// Deliberately try provoke the garbage collector into hating on us because of an edge case
+        /// <para>This test fails if the next shot is never fired (it will)</para>
+        /// </summary>
+        /// <returns></returns>
+        private static async Task TestGarbageCollector()
+        {
+            Console.WriteLine("One Shot Test With Varying Delay (GC Test)");
+            await Task.Delay(1000).ConfigureAwait(false);
+
+            int initialDelay = 1;
+
+            for (int i = 0; i < 27; i++)
+            {
+                PrecisionTimer.SetInterval(Bang, 1, periodic: false);
+
+                await Task.Delay(2).ConfigureAwait(false);
+                Console.WriteLine("One Shot will be fired after: " + initialDelay + "ms - " + (i + 1) + "/27");
+
+                PrecisionTimer.Stop();
+                await Task.Delay(initialDelay + 1).ConfigureAwait(false);
+
+                initialDelay *= 2;
+            }
+
+            Console.WriteLine("-------------");
+        }
+
+        /// <summary>
+        /// Dispose of the PrecisionTimer and then create a new one and Run a PeriodicTest()
+        /// </summary>
+        /// <param name="lastTest">true if this is the last test</param>
+        /// <returns></returns>
+        private static async Task DisposeTest(bool lastTest)
+        {
+            try
+            {
+                PrecisionTimer.Stop();
+                PrecisionTimer.Dispose();
+                Console.WriteLine("This timer won't start again because dispose was called");
+                PrecisionTimer.Start();               // <- This will not work and will throw Object Disposed Exception
+            }
+            catch
+            {
+                Trace.WriteLine("Ignored Exception"); // Object Disposed Exception Ignored
+            }
+
+            ActionCount = 0;
+
+            Console.WriteLine("Created New Timer");
+            PrecisionTimer = new PrecisionTimer();  // <- This will work with the new garbage collection changes
+            PrecisionTimer.SetAction(Action);       // <- This will work
+            await PeriodicTest();
+            if (lastTest)
+            {
+                PrecisionTimer.Dispose();
+            }
+        }
+
+        public static Action Bang = () =>
+        {
+            Console.WriteLine("------Bang-------");
+        };
+
+        // You could use PrecisionTimerEvent instead if you only want a 1ms Tick Event and don't use Action()
+        private static void TickEventOnly(object sender, EventArgs args)
+        {
+            eventTestCount++;
+            Console.WriteLine("[" + eventTestCount + "] Timer Ticked");
+        }
+
+        static volatile int ActionCount = 0;
+        static volatile int eventTestCount = 0;
     }
 }

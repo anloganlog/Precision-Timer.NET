@@ -39,6 +39,7 @@ namespace PrecisionTiming
         public TimerStartException(string message)
             : base(message)
         {
+            Console.WriteLine(message);
         }
     }
 }

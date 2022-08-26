@@ -23,29 +23,23 @@
 */
 
 using System;
-using System.Runtime.InteropServices;
 
 namespace PrecisionTiming
 {
-    internal static class MMTimerExports
+    /// <summary>
+    /// Occurs when a periodic <see cref="PrecisionTimer"/> is already running and the user attempts to configure something that requires stopping it first
+    /// </summary>
+    [Serializable]
+    public class PeriodicTimerRunningException : Exception
     {
-        [DllImport(Constants.windowsMultimediaAPIString)]
-        internal static extern int timeBeginPeriod(int period);
-
-        [DllImport(Constants.windowsMultimediaAPIString)]
-        internal static extern int timeEndPeriod(int period);
-
-        [DllImport(Constants.windowsMultimediaAPIString)]
-        internal static extern int timeGetDevCaps(ref TimerCapabilities caps, int sizeOfTimerCaps);
-
-        [DllImport(Constants.windowsMultimediaAPIString)]
-        internal static extern int timeKillEvent(int id);
-
-        [DllImport(Constants.windowsMultimediaAPIString)]
-        internal static extern int timeSetEvent(int delay, int resolution, TimerProc proc, IntPtr user, TimerMode mode);
-
-        internal delegate void TimerProc(int hwnd, int uMsg, IntPtr idEvent, int dwTime, int WTFref);
-
-        internal static TimerCapabilities Capabilities;
+        /// <summary>
+        /// Occurs when a periodic <see cref="PrecisionTimer"/> is already running and the user attempts to configure something that requires stopping it first
+        /// </summary>
+        /// <param name="message">User friendly error message</param>
+        public PeriodicTimerRunningException(string message)
+            : base(message)
+        {
+            Console.WriteLine(message);
+        }
     }
 }

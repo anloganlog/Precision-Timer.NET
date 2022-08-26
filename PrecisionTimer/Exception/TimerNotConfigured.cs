@@ -39,6 +39,7 @@ namespace PrecisionTiming
         public TimerNotConfigured(string message)
             : base(message)
         {
+            Console.WriteLine(message);
         }
     }
 }

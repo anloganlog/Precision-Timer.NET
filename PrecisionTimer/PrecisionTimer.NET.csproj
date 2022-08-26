@@ -14,10 +14,10 @@
     <RepositoryUrl>https://github.com/HypsyNZ/Precision-Timer.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>multimedia-timer, timer, mm, high, resolution, precision, events</PackageTags>
-    <AssemblyVersion>2.2.4.6</AssemblyVersion>
-    <FileVersion>2.2.4.6</FileVersion>
-    <VersionPrefix>2.2.4.6</VersionPrefix>
+    <PackageTags>multimedia-timer, timer, mm, high, resolution, precision, events, 1ms, proc, direct-cpu</PackageTags>
+    <AssemblyVersion>2.2.4.7</AssemblyVersion>
+    <FileVersion>2.2.4.7</FileVersion>
+    <VersionPrefix>2.2.4.7</VersionPrefix>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Title>PrecisonTimer.NET</Title>
@@ -43,6 +43,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
+    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

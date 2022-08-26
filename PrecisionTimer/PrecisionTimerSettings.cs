@@ -30,7 +30,7 @@ namespace PrecisionTiming
     /// Multimedia Timer Settings
     /// Allows you to configure your application to work better with high resolution timers
     /// </summary>
-    public static class TimingSettings
+    public static class PrecisionTimerSettings
     {
         /// <summary>
         /// Minimum timer resolution, in milliseconds, for the application.
@@ -40,7 +40,7 @@ namespace PrecisionTiming
         public static void SetMinimumTimerResolution(int setMinimum)
         {
             if (MMTimerExports.timeBeginPeriod(setMinimum) != 0)
-                throw new InvalidOperationException(MMTimer.resolutionNotSupported);
+                throw new InvalidOperationException(Constants.resolutionNotSupportedString);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace PrecisionTiming
         public static void ClearMinimumTimerResolution(int clearSetMinimum)
         {
             if (MMTimerExports.timeEndPeriod(clearSetMinimum) != 0)
-                throw new InvalidOperationException(MMTimer.resolutionNotSupported);
+                throw new InvalidOperationException(Constants.resolutionNotSupportedString);
         }
     }
 }

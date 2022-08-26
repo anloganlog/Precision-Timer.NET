@@ -27,18 +27,19 @@ using System;
 namespace PrecisionTiming
 {
     /// <summary>
-    /// Occurs when there is an error during the <see cref="PrecisionTimer"/>s Elapsed Event
+    /// Occurs when a <see cref="PrecisionTimerEvent"/> is already running and the user attempts to configure something that requires stopping it first
     /// </summary>
     [Serializable]
-    public class TimerTaskFailed : Exception
+    public class LongRunningTimerException : Exception
     {
         /// <summary>
-        /// Occurs when there is an error during the <see cref="PrecisionTimer"/>s Elapsed Event
+        /// Occurs when a <see cref="PrecisionTimerEvent"/> is already running and the user attempts to configure something that requires stopping it first
         /// </summary>
         /// <param name="message">User friendly error message</param>
-        public TimerTaskFailed(string message)
+        public LongRunningTimerException(string message)
             : base(message)
         {
+            Console.WriteLine(message);
         }
     }
 }
