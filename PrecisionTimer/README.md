@@ -1,3 +1,20 @@
+### Version 2.2.4.7
+- [x] Remove Extra Layer
+- [x] Remove throw from `Callback`
+- [x] Rename `AutoReset` to `AutoResetMode`
+- [x] Tick event can be null
+- [x] Refactor some things
+- [x] Add Locks
+- [x] Using `Action` without `Tick Event` is now faster
+- [x] Volatile
+- [x] Add `Configure` overload as alternative to `SetInterval`
+- [x] Re-add Getter Methods
+- [x] Re-add Setter Methods
+- [x] Add `Overloads`
+- [x] Add Exception `PeriodicTimerRunningException`
+- [x] Change `TimingSettings` to `PrecisionTimerSettings`
+- [x] Adds `PrecisionTimerEvent` which is a simplified `EventHandler` only version of `PrecisionTimer`
+
 ### Version 2.2.4.6
 - [x] Garbage Collection Changes
 - [x] More Detailed Example
